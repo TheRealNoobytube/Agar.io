@@ -49,12 +49,13 @@ public class AgarioApplication extends Application {
     static private ArrayList queuedObjectsForDeletion = new ArrayList<>();
 
     Player player;
-    
+    Enemy enemy;
 
     @Override
     public void start(Stage stage) throws IOException {
         //create a player object, add it to the group, the initial radius 50
         player = new Player(root, 50);
+        enemy = new Enemy(root, 50 );
 
         //start the gametimer
         GameTimer timer = new GameTimer();
@@ -105,9 +106,11 @@ public class AgarioApplication extends Application {
 
         //move player towards the mouse position
         player.moveToward(getMousePosition());
+        enemy.moveToward(new double[]{player.playerSprite.getCenterX(), player.playerSprite.getCenterY()});
         //check if player is colliding with anything
         player.checkCollision();
         createFood();
+
 
 
     }
