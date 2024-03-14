@@ -3,15 +3,18 @@ package com.example.demo1wdassdfsdf;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-
+import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 public class AgarioApplication extends Application {
@@ -19,7 +22,7 @@ public class AgarioApplication extends Application {
 
     public class GameTimer extends AnimationTimer{
 
-        private double framesPerSecond = 120;
+        private double framesPerSecond = 60;
         private double interval = 1000000000 / framesPerSecond;
         private double last = 0;
         @Override
@@ -32,29 +35,31 @@ public class AgarioApplication extends Application {
             if (now - last > interval ){
                 last = now;
                 freeQueuedObjects(); // deletes any objects queued up to be free
-                update(); //calls update function every frame
+                for (Node entity : root.getChildren()){
+                    Entity convertedEntity = (Entity) entity;
+                    convertedEntity.Update();
+                }
+                Update(); //calls update function every frame
+                
 
             }
         }
     }
 
-
     private static Scene scene;
     public static Group root = new Group();
     private static double mapLimitWidth = 2000;
     private static double mapLimitHeight = 2000;
-    private static double ScreenWidth = 640;
-    private static double ScreenHeight = 480;
+    private static double ScreenWidth = 1280;
+    private static double ScreenHeight = 720;
     private static ArrayList queuedObjectsForDeletion = new ArrayList<>();
 
     public static Player player;
-    public static ArrayList<Enemy> Enemies = new ArrayList<Enemy>();
-
 
     @Override
     public void start(Stage stage) throws IOException {
         //create a player object, add it to the group, the initial radius 50
-        player = new Player(root, 100);
+        player = new Player(root, 50);
         Enemy enemy = new Enemy(root, 50);
         //start the gametimer
         GameTimer timer = new GameTimer();
@@ -101,20 +106,26 @@ public class AgarioApplication extends Application {
 
     public int maxTimer = 2;
     public int timer = maxTimer;
-    public void update(){
+    public static int enemies = 0;
+
+    public void Update(){
         //does something every frame, put actions in here
 
 
-        player.Update();
-        for(Enemy enemy: Enemies){
-            enemy.Update();
-        }
-
         //spawn food every 5 frames
         if (timer <= 0){
-            createFood();
+            if (root.getChildren().size() < 200){
+                createFood();
+            }
+            
             timer = maxTimer; //reset the timer
         }
+
+        if (enemies < 5){
+            Enemy enemy = new Enemy(root, 50);
+            enemies++;
+        }
+
         timer--; //decrement timer
 
     }
@@ -122,7 +133,7 @@ public class AgarioApplication extends Application {
 
 
     public void createFood(){
-        Food food = new Food(root, 10, 1);
+        Food food = new Food(root, 10);
     }
 
 
@@ -133,6 +144,8 @@ public class AgarioApplication extends Application {
         //puts objects in a dynamic array, just means an array that doesnt have a fixed size
         //every frame before the update function is called, the objects in the queue will be deleted
         queuedObjectsForDeletion.add(object);
+        Entity entity = (Entity) object;    
+        entity.onDeletion();
     }
 
     private void freeQueuedObjects(){
